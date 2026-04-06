@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Imports\SiswaImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SiswaController extends Controller
 {
@@ -15,8 +17,8 @@ class SiswaController extends Controller
         $siswas = User::where('role', 'siswa')
             ->when($request->q, function ($q) use ($request) {
                 $q->where('name', 'like', "%{$request->q}%")
-                  ->orWhere('nis', 'like', "%{$request->q}%")
-                  ->orWhere('username', 'like', "%{$request->q}%");
+                    ->orWhere('nis', 'like', "%{$request->q}%")
+                    ->orWhere('username', 'like', "%{$request->q}%");
             })
             ->withCount(['loans', 'loans as aktif_count' => function ($q) {
                 $q->where('status', 'dipinjam');
@@ -31,6 +33,18 @@ class SiswaController extends Controller
     public function create()
     {
         return view('admin.siswa.create');
+    }
+
+    public function downloadTemplate()
+    {
+        $filePath = public_path('templates/template_siswa.xlsx');
+
+        // Jika file belum ada, kita bisa buatkan peringatan atau arahkan ke file statis
+        if (!file_exists($filePath)) {
+            return back()->with('error', 'File template tidak ditemukan. Silakan hubungi developer.');
+        }
+
+        return response()->download($filePath);
     }
 
     public function store(Request $request)
@@ -82,9 +96,9 @@ class SiswaController extends Controller
     {
         $request->validate([
             'name'     => 'required|string|max:255',
-            'username' => 'required|string|max:50|alpha_dash|unique:users,username,'.$siswa->id,
-            'nis'      => 'required|string|max:20|unique:users,nis,'.$siswa->id,
-            'email'    => 'required|email|unique:users,email,'.$siswa->id,
+            'username' => 'required|string|max:50|alpha_dash|unique:users,username,' . $siswa->id,
+            'nis'      => 'required|string|max:20|unique:users,nis,' . $siswa->id,
+            'email'    => 'required|email|unique:users,email,' . $siswa->id,
             'password' => 'nullable|min:6|confirmed',
         ]);
 
@@ -119,5 +133,16 @@ class SiswaController extends Controller
         $siswa->update(['password' => Hash::make($siswa->nis)]);
 
         return back()->with('success', "Password direset ke NIS: {$siswa->nis}");
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+        Excel::import(new SiswaImport, $request->file('file'));
+
+        return back()->with('success', 'Data siswa berhasil di-import!');
     }
 }

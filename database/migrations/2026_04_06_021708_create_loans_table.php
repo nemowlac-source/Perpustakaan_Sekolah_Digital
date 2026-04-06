@@ -9,20 +9,20 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-   public function up(): void
-{
-    Schema::create('loans', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-        $table->foreignId('book_id')->constrained()->cascadeOnDelete();
-        $table->date('borrow_date');
-        $table->date('due_date');
-        $table->date('return_date')->nullable();
-        $table->enum('status', ['dipinjam', 'dikembalikan', 'terlambat'])->default('dipinjam');
-        $table->unsignedInteger('fine')->default(0);
-        $table->timestamps();
-    });
-}
+    public function up(): void
+    {
+        Schema::create('loans', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('book_id')->constrained()->cascadeOnDelete();
+            $table->date('borrow_date');
+            $table->date('due_date');
+            $table->date('return_date')->nullable();
+            $table->enum('status', ['dipinjam', 'dikembalikan', 'terlambat'])->default('dipinjam');
+            $table->unsignedInteger('fine')->default(0);
+            $table->timestamps();
+        });
+    }
 
     /**
      * Reverse the migrations.

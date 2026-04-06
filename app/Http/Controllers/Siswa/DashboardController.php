@@ -5,12 +5,23 @@ namespace App\Http\Controllers\Siswa;
 use App\Http\Controllers\Controller;
 use App\Models\{Loan, Book};
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
+
+        $query = $request->query('search');
+
+        $books = Book::with('category')
+            ->when($query, function ($q) use ($query) {
+                $q->where('title', 'like', "%{$query}%")
+                    ->orWhere('author', 'like', "%{$query}%");
+            })
+            ->latest()
+            ->paginate(10);
 
         $pinjaman_aktif = Loan::where('user_id', $user->id)
             ->where('status', 'dipinjam')
@@ -29,6 +40,6 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('siswa.dashboard', compact('user', 'pinjaman_aktif', 'rekomendasi'));
+        return view('siswa.dashboard', compact('user', 'pinjaman_aktif', 'rekomendasi', 'books'));
     }
 }

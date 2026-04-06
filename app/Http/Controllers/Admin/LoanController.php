@@ -4,9 +4,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Loan, Book, User};
+use App\Models\{Loan, Book, User,LoanRequest};
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+
 
 class LoanController extends Controller
 {
@@ -122,4 +123,24 @@ class LoanController extends Controller
             ->where('due_date', '<', Carbon::today())
             ->update(['status' => 'terlambat']);
     }
+
+    public function approveRequest(LoanRequest $request)
+{
+    // 1. Buat data pinjaman resmi
+    Loan::create([
+        'user_id' => $request->user_id,
+        'book_id' => $request->book_id,
+        'borrow_date' => now(),
+        'due_date' => now()->addDays(7), // Batas kembali 7 hari
+        'status' => 'dipinjam',
+    ]);
+
+    // 2. Kurangi stok buku
+    $request->book->decrement('stock');
+
+    // 3. Update status request
+    $request->update(['status' => 'completed']);
+
+    return back()->with('success', 'Buku berhasil diserahkan ke siswa!');
+}
 }

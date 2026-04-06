@@ -20,5 +20,13 @@ public function run(): void
         'password' => bcrypt('admin123'),
         'role'     => 'admin',
     ]);
+
+    \App\Models\User::create([
+        'name'     => 'Budi Santoso',
+        'username' => 'budi',
+        'email'    => 'budi@perpustakaan.com',
+        'password' => bcrypt('budi123'),
+        'role'     => 'siswa',
+    ]);
 }
 }
