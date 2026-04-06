@@ -145,4 +145,18 @@ class SiswaController extends Controller
 
         return back()->with('success', 'Data siswa berhasil di-import!');
     }
+
+    public function indexPersetujuan()
+    {
+        $calonSiswa = User::where('role', 'siswa')->where('is_active', 0)->get();
+        return view('admin.siswa.persetujuan', compact('calonSiswa'));
+    }
+
+    public function konfirmasiSiswa($id)
+    {
+        $user = User::findOrFail($id);
+        $user->update(['is_active' => 1]);
+
+        return back()->with('success', 'Siswa berhasil dikonfirmasi!');
+    }
 }

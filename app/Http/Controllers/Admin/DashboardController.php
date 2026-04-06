@@ -9,6 +9,9 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        $pendingSiswaCount = \App\Models\User::where('role', 'siswa')
+                                        ->where('is_active', 0)
+                                        ->count();
         $stats = [
             'total_buku'      => Book::count(),
             'total_siswa'     => User::where('role', 'siswa')->count(),
@@ -20,6 +23,6 @@ class DashboardController extends Controller
         $pinjam_terbaru = Loan::with(['user', 'book'])
             ->latest()->take(5)->get();
 
-        return view('admin.dashboard', compact('stats', 'pinjam_terbaru'));
+        return view('admin.dashboard', compact('stats', 'pinjam_terbaru','pendingSiswaCount'));
     }
 }

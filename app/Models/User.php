@@ -13,45 +13,57 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-// app/Models/User.php
+    // app/Models/User.php
 
-// Konstanta poin
-const POINTS_RETURN_ONTIME  = 10;  // Kembalikan tepat waktu
-const POINTS_BORROW_BOOK    = 2;   // Setiap meminjam buku
-const POINTS_REQUEST_APPROVED = 5; // Request buku disetujui
+    // Konstanta poin
+    const POINTS_RETURN_ONTIME  = 10;  // Kembalikan tepat waktu
+    const POINTS_BORROW_BOOK    = 2;   // Setiap meminjam buku
+    const POINTS_REQUEST_APPROVED = 5; // Request buku disetujui
 
-public function addPoints(int $amount): void
-{
-    $this->increment('points', $amount);
-}
+    public function addPoints(int $amount): void
+    {
+        $this->increment('points', $amount);
+    }
 
-public function deductPoints(int $amount): void
-{
-    $newPoints = max(0, $this->points - $amount);
-    $this->update(['points' => $newPoints]);
-}
+    public function deductPoints(int $amount): void
+    {
+        $newPoints = max(0, $this->points - $amount);
+        $this->update(['points' => $newPoints]);
+    }
 
-// Hitung level berdasarkan poin
-public function getLevel(): array
-{
-    return match(true) {
-        $this->points >= 500 => ['name' => 'Platinum', 'color' => 'badge-primary',  'icon' => '💎'],
-        $this->points >= 200 => ['name' => 'Gold',     'color' => 'badge-warning',  'icon' => '🥇'],
-        $this->points >= 100 => ['name' => 'Silver',   'color' => 'badge-secondary','icon' => '🥈'],
-        $this->points >= 50  => ['name' => 'Bronze',   'color' => 'badge-accent',   'icon' => '🥉'],
-        default              => ['name' => 'Pemula',   'color' => 'badge-ghost',    'icon' => '📚'],
-    };
-}
+    // Hitung level berdasarkan poin
+    public function getLevel(): array
+    {
+        return match (true) {
+            $this->points >= 500 => ['name' => 'Platinum', 'color' => 'badge-primary',  'icon' => '💎'],
+            $this->points >= 200 => ['name' => 'Gold',     'color' => 'badge-warning',  'icon' => '🥇'],
+            $this->points >= 100 => ['name' => 'Silver',   'color' => 'badge-secondary', 'icon' => '🥈'],
+            $this->points >= 50  => ['name' => 'Bronze',   'color' => 'badge-accent',   'icon' => '🥉'],
+            default              => ['name' => 'Pemula',   'color' => 'badge-ghost',    'icon' => '📚'],
+        };
+    }
 
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
-     protected $fillable = [
-        'name', 'username', 'nis', 'email',
-        'password', 'role', 'points',
+    protected $fillable = [
+        'name',
+        'username',
+        'nis',
+        'email',
+        'password',
+        'role',
+        'points',
+        'is_active', // Tambahkan ini agar bisa diisi mass-assign
     ];
+
+    // Helper: Cek apakah akun sudah aktif
+    public function isActive(): bool
+    {
+        return (bool) $this->is_active;
+    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -63,14 +75,29 @@ public function getLevel(): array
         'remember_token',
     ];
 
-     // Relasi
-    public function loans() { return $this->hasMany(Loan::class); }
-    public function favorites() { return $this->hasMany(Favorite::class); }
-    public function requests() { return $this->hasMany(BookRequest::class); }
+    // Relasi
+    public function loans()
+    {
+        return $this->hasMany(Loan::class);
+    }
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+    public function requests()
+    {
+        return $this->hasMany(BookRequest::class);
+    }
 
     // Helper: cek role
-    public function isAdmin(): bool { return $this->role === 'admin'; }
-    public function isSiswa(): bool { return $this->role === 'siswa'; }
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+    public function isSiswa(): bool
+    {
+        return $this->role === 'siswa';
+    }
 
     // Tambah poin saat buku dikembalikan tepat waktu
 

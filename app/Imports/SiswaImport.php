@@ -21,6 +21,7 @@ class SiswaImport implements ToModel, WithHeadingRow, WithValidation
             'password' => Hash::make($row['password'] ?? 'siswa123'),
             'role'     => 'siswa',
             'points'   => 0,
+            'is_active' => true,
         ]);
     }
 
