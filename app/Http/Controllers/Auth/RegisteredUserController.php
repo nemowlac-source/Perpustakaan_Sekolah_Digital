@@ -29,29 +29,29 @@ class RegisteredUserController extends Controller
      * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
-{
-    $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'nis'  => ['required', 'string', 'max:20', 'unique:'.User::class.',nis', 'unique:'.User::class.',username'],
-        'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-        'password' => ['required', 'confirmed', Rules\Password::defaults()],
-    ]);
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'nis'  => ['required', 'string', 'max:20', 'unique:' . User::class . ',nis', 'unique:' . User::class . ',username'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
 
-    $user = User::create([
-        'name'      => $request->name,
-        'email'     => $request->email,
-        'nis'       => $request->nis,
-        'username'  => $request->nis, // NIS otomatis jadi username untuk login
-        'password'  => Hash::make($request->password),
-        'role'      => 'siswa',      // Set default sebagai siswa
-        'is_active' => false,        // Menunggu konfirmasi Admin
-        'points'    => 0,            // Inisialisasi poin
-    ]);
+        $user = User::create([
+            'name'      => $request->name,
+            'email'     => $request->email,
+            'nis'       => $request->nis,
+            'username'  => $request->nis, // NIS otomatis jadi username untuk login
+            'password'  => Hash::make($request->password),
+            'role'      => 'siswa',      // Set default sebagai siswa
+            'is_active' => false,        // Menunggu konfirmasi Admin
+            'points'    => 0,            // Inisialisasi poin
+        ]);
 
-    event(new Registered($user));
+        event(new Registered($user));
 
-    // JANGAN Auth::login($user);
-    // Kita arahkan ke halaman login dengan pesan sukses/instruksi
-    return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan tunggu konfirmasi dari Admin sebelum dapat login.');
-}
+        Auth::login($user);
+
+        return redirect()->route('waiting.approval');
+    }
 }

@@ -159,4 +159,6 @@ class SiswaController extends Controller
 
         return back()->with('success', 'Siswa berhasil dikonfirmasi!');
     }
+
+    
 }

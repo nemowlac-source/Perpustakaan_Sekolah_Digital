@@ -83,23 +83,27 @@ class LoanController extends Controller
         return view('admin.loans.show', compact('loan'));
     }
 
+
     // Proses pengembalian buku
     public function returnBook(Request $request, Loan $loan)
     {
-        if ($loan->status === 'dikembalikan') {
-            return back()->with('error', 'Buku ini sudah dikembalikan sebelumnya.');
-        }
+       if ($loan->status === 'dikembalikan') {
+        return back()->with('error', 'Buku ini sudah dikembalikan sebelumnya.');
+    }
 
-        $returnDate = Carbon::today();
-        $fine       = $loan->calculateFine();
-        $isOnTime   = $fine === 0;
+    // 1. Set dulu tanggal kembalinya di objek (jangan di-save dulu)
+    $loan->return_date = Carbon::today();
+    
+    // 2. Baru hitung denda berdasarkan return_date yang baru saja diset
+    $fine = $loan->calculateFine();
+    $isOnTime = ($fine === 0);
 
-        // Update loan
-        $loan->update([
-            'return_date' => $returnDate,
-            'status'      => 'dikembalikan',
-            'fine'        => $fine,
-        ]);
+    // 3. Simpan semuanya sekaligus
+    $loan->update([
+        'return_date' => $loan->return_date,
+        'status'      => 'dikembalikan',
+        'fine'        => $fine,
+    ]);
 
         // Kembalikan stok buku
         $loan->book->increment('stock');
